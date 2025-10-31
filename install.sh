@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+export PATH="$HOME/.cargo/bin:$PATH"
+
 REPO="hoqqun/nanji"
 BINARY_NAME="nanji"
 
