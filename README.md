@@ -18,9 +18,11 @@ It’s simple, fast, and perfect for anyone who frequently checks time differenc
 
 ## 🧰 Installation
 
-### Run locally via Cargo
+### 🦀 Install via one-liner (recommended)
+
+You can install **nanji** instantly using the provided install script:
 
 ```bash
-git clone https://github.com/yourname/nanji.git
-cd nanji
-cargo run
+curl -fsSL https://raw.githubusercontent.com/hoqqun/nanji/main/install.sh | sh
+```
+
