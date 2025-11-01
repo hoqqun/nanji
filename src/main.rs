@@ -3,6 +3,7 @@ use clap::{ArgGroup, Parser};
 
 mod commands;
 mod cli; // expose cli so other modules can use validators
+mod config; // configuration loader for zones
 
 /// nanji: a simple CLI that shows the current time in multiple timezones
 #[derive(Parser)]

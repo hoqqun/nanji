@@ -1,8 +1,6 @@
-use crate::cli::convert_valid_time_to_timezone_utc;
-use crate::cli::is_valid_time;
-use crate::cli::display_all_zones;
+use crate::cli::{convert_valid_time_to_timezone_utc, is_valid_time, display_all_zones, display_selected_zones};
 
-pub fn run(time_str: &str) {
+pub fn run(time_str: &str, zones_arg: Option<&str>) {
     // validate
     if !is_valid_time(time_str) {
         eprintln!("invalid time format: '{}'. expected H:MM or HH:MM (00-23:00-59)", time_str);
@@ -10,7 +8,29 @@ pub fn run(time_str: &str) {
     }
 
     let tz = chrono_tz::America::Chicago;
-    let base_time = convert_valid_time_to_timezone_utc(time_str, &tz);
+    let base_time = convert_valid_time_to_timezone_utc(time_str, &tz).unwrap();
 
-    display_all_zones(&base_time.unwrap())
+    // 1) CLI --zones overrides
+    if let Some(zs) = zones_arg {
+        let zones: Vec<String> = zs
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+        if !zones.is_empty() {
+            display_selected_zones(&base_time, &zones);
+            return;
+        }
+    }
+
+    // 2) Config file
+    if let Some(zones) = crate::config::load_zones() {
+        if !zones.is_empty() {
+            display_selected_zones(&base_time, &zones);
+            return;
+        }
+    }
+
+    // 3) Fallback
+    display_all_zones(&base_time)
 }

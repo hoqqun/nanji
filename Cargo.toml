@@ -9,4 +9,7 @@ chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = "0.10.4"
 colored = "3.0.0"
 regex = "1.12.2"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+dirs = "5"
 

@@ -57,21 +57,64 @@ pub struct Cli {
 
 pub fn display_all_zones(base_time: &DateTime<Utc>) {
     // show across zones
-    let zones = vec![
-        ("Tokyo JST", chrono_tz::Asia::Tokyo),
-        ("California PST", chrono_tz::America::Los_Angeles),
-        ("Dallas CST", chrono_tz::America::Chicago),
-        ("New York EST", chrono_tz::America::New_York),
-    ];
+    let zones: Vec<(&'static str, Tz)> = chrono_tz::TZ_VARIANTS
+        .iter()
+        .map(|tz| (tz.name(), tz.clone()))
+        .collect();
+
+    let max_name_len = zones.iter().map(|(name, _tz)| name.len()).max().unwrap();
 
     println!("{}", "────────────────────────────".bright_blue());
     for (name, tz) in zones {
         let local_time = base_time.with_timezone(&tz);
+
         println!(
-            "{}: {}",
-            format!("{:<15}", name.bold()),
-            local_time.format("%Y-%m-%d %H:%M")
+            "{:<width$}: {}",
+            name.bold(),
+            local_time.format("%Y-%m-%d %H:%M"),
+            width = max_name_len,
         );
+    }
+    println!("{}", "────────────────────────────".bright_blue());
+}
+
+/// Display only the specified IANA timezone names (e.g., "Asia/Tokyo").
+/// Invalid names are skipped with a warning.
+pub fn display_selected_zones(base_time: &DateTime<Utc>, zones: &[String]) {
+    use std::str::FromStr;
+
+    let mut items: Vec<(String, Option<chrono_tz::Tz>)> = zones
+        .iter()
+        .map(|raw| {
+            let canonical = crate::config::normalize_zone_name(raw)
+                .unwrap_or_else(|| raw.clone());
+            (raw.clone(), chrono_tz::Tz::from_str(&canonical).ok())
+        })
+        .collect();
+
+    // Compute width using the longest provided label (regardless of validity)
+    let max_name_len = items
+        .iter()
+        .map(|(name, _)| name.len())
+        .max()
+        .unwrap_or(0);
+
+    println!("{}", "────────────────────────────".bright_blue());
+    for (label, tz_opt) in items.drain(..) {
+        match tz_opt {
+            Some(tz) => {
+                let local_time = base_time.with_timezone(&tz);
+                println!(
+                    "{:<width$}: {}",
+                    label.bold(),
+                    local_time.format("%Y-%m-%d %H:%M"),
+                    width = max_name_len,
+                );
+            }
+            None => {
+                eprintln!("warning: unknown timezone name '{}', skipping", label);
+            }
+        }
     }
     println!("{}", "────────────────────────────".bright_blue());
 }
