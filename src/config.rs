@@ -30,8 +30,8 @@ pub fn load_config() -> Option<Config> {
 /// Default built-in aliases.
 fn default_aliases() -> HashMap<String, String> {
     let mut m = HashMap::new();
-    m.insert("Tokyo".into(), "Asia/Tokyo".into());
-    m.insert("Dallas".into(), "America/Chicago".into());
+    m.insert("tokyo".into(), "Asia/Tokyo".into());
+    m.insert("dallas".into(), "America/Chicago".into());
     m.insert("california".into(), "America/Los_Angeles".into());
     m.insert("losangeles".into(), "America/Los_Angeles".into());
     m.insert("los_angeles".into(), "America/Los_Angeles".into());
@@ -44,15 +44,16 @@ fn default_aliases() -> HashMap<String, String> {
 
 /// Merge built-in aliases with config overrides (config wins).
 pub fn alias_map() -> HashMap<String, String> {
-    let mut map = default_aliases();
+    // Case-insensitive lookup map: lowercase alias -> canonical
+    let mut map: HashMap<String, String> = HashMap::new();
+    for (k, v) in default_aliases() {
+        map.insert(k.to_ascii_lowercase(), v);
+    }
     if let Some(cfg) = load_config() {
-        if let Some(mut user) = cfg.aliases {
-            // normalize keys to lowercase for case-insensitive lookup
-            let mut lower: HashMap<String, String> = HashMap::new();
-            for (k, v) in user.drain() {
-                lower.insert(k.to_ascii_lowercase(), v);
+        if let Some(user) = cfg.aliases {
+            for (k, v) in user {
+                map.insert(k.to_ascii_lowercase(), v);
             }
-            map.extend(lower); // user config overrides defaults
         }
     }
     map
@@ -69,7 +70,21 @@ pub fn normalize_zone_name(raw: &str) -> Option<String> {
 /// If multiple aliases point to the same canonical name, the lexicographically
 /// smallest key is returned for stability.
 pub fn alias_for_canonical(canonical: &str) -> Option<String> {
-    let mut candidates: Vec<String> = alias_map()
+    // Prefer user-defined aliases with original casing
+    if let Some(cfg) = load_config() {
+        if let Some(aliases) = cfg.aliases {
+            let mut candidates: Vec<String> = aliases
+                .into_iter()
+                .filter_map(|(k, v)| if v == canonical { Some(k) } else { None })
+                .collect();
+            if !candidates.is_empty() {
+                candidates.sort_unstable();
+                return candidates.into_iter().next();
+            }
+        }
+    }
+    // Fallback to built-in aliases (lowercase labels)
+    let mut candidates: Vec<String> = default_aliases()
         .into_iter()
         .filter_map(|(k, v)| if v == canonical { Some(k) } else { None })
         .collect();

@@ -4,7 +4,10 @@ use std::process::Command;
 
 fn bin_cmd() -> Command {
     let bin_path = assert_cmd::cargo::cargo_bin!("nanji");
-    Command::new(bin_path)
+    let mut cmd = Command::new(bin_path);
+    // Isolate from user's real config so tests are deterministic
+    cmd.env("XDG_CONFIG_HOME", "/");
+    cmd
 }
 
 #[test]
