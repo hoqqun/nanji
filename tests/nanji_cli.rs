@@ -67,6 +67,17 @@ fn alias_labels_output_when_requested() {
 }
 
 #[test]
+fn alias_labels_used_in_all_zones_when_alias_flag() {
+    // When showing all zones, alias labels should be used where available
+    let mut cmd = bin_cmd();
+    cmd.arg("--alias");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("tokyo"))
+        .stdout(predicate::str::contains("Asia/Tokyo").not());
+}
+
+#[test]
 fn base_without_time_is_error() {
     let mut cmd = bin_cmd();
     cmd.args(["-b", "tokyo"]);

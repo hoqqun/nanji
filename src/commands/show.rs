@@ -31,5 +31,5 @@ pub fn run(zones_arg: Option<&str>, use_alias_labels: bool) {
     }
 
     // 3) Fallback to all zones
-    display_all_zones(&now_utc);
+    display_all_zones(&now_utc, use_alias_labels);
 }

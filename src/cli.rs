@@ -55,22 +55,38 @@ pub struct Cli {
 }
 
 
-pub fn display_all_zones(base_time: &DateTime<Utc>) {
-    // show across zones
-    let zones: Vec<(&'static str, Tz)> = chrono_tz::TZ_VARIANTS
+pub fn display_all_zones(base_time: &DateTime<Utc>, use_alias_labels: bool) {
+    // Prepare canonical names and tz
+    let zones: Vec<(String, Tz)> = chrono_tz::TZ_VARIANTS
         .iter()
-        .map(|tz| (tz.name(), tz.clone()))
+        .map(|tz| (tz.name().to_string(), tz.clone()))
         .collect();
 
-    let max_name_len = zones.iter().map(|(name, _tz)| name.len()).max().unwrap();
+    // Compute labels (alias or canonical)
+    let labeled: Vec<(String, Tz)> = if use_alias_labels {
+        zones
+            .into_iter()
+            .map(|(canonical, tz)| {
+                let label = crate::config::alias_for_canonical(&canonical).unwrap_or(canonical);
+                (label, tz)
+            })
+            .collect()
+    } else {
+        zones
+    };
+
+    let max_name_len = labeled
+        .iter()
+        .map(|(name, _tz)| name.len())
+        .max()
+        .unwrap_or(0);
 
     println!("{}", "────────────────────────────".bright_blue());
-    for (name, tz) in zones {
+    for (label, tz) in labeled {
         let local_time = base_time.with_timezone(&tz);
-
         println!(
             "{:<width$}: {}",
-            name.bold(),
+            label.bold(),
             local_time.format("%Y-%m-%d %H:%M"),
             width = max_name_len,
         );

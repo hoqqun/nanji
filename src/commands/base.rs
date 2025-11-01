@@ -52,5 +52,5 @@ pub fn run(base_tz_raw: &str, time_str: &str, zones_arg: Option<&str>, use_alias
     }
 
     // 3) Fallback
-    display_all_zones(&base_time);
+    display_all_zones(&base_time, use_alias_labels);
 }
