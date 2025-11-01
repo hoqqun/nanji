@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -e
 
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -6,11 +6,17 @@ export PATH="$HOME/.cargo/bin:$PATH"
 REPO="hoqqun/nanji"
 BINARY_NAME="nanji"
 
-# Detect if cargo is available
-if ! command -v cargo &> /dev/null; then
-  echo "❌ Cargo not found. Please install Rust first:"
-  echo "   https://www.rust-lang.org/tools/install"
-  exit 1
+# Detect if cargo is available (POSIX sh compatible)
+if ! command -v cargo >/dev/null 2>&1; then
+  # try well-known default install path
+  if [ -x "$HOME/.cargo/bin/cargo" ]; then
+    PATH="$HOME/.cargo/bin:$PATH"
+    export PATH
+  else
+    echo "❌ Cargo not found. Please install Rust first:"
+    echo "   https://www.rust-lang.org/tools/install"
+    exit 1
+  fi
 fi
 
 echo "🦀 Installing $BINARY_NAME from $REPO..."
