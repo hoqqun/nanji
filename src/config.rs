@@ -30,8 +30,8 @@ pub fn load_config() -> Option<Config> {
 /// Default built-in aliases.
 fn default_aliases() -> HashMap<String, String> {
     let mut m = HashMap::new();
-    m.insert("tokyo".into(), "Asia/Tokyo".into());
-    m.insert("dallas".into(), "America/Chicago".into());
+    m.insert("Tokyo".into(), "Asia/Tokyo".into());
+    m.insert("Dallas".into(), "America/Chicago".into());
     m.insert("california".into(), "America/Los_Angeles".into());
     m.insert("losangeles".into(), "America/Los_Angeles".into());
     m.insert("los_angeles".into(), "America/Los_Angeles".into());
