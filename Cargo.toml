@@ -6,5 +6,7 @@ edition = "2024"
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 chrono = { version = "0.4", features = ["serde"] }
-chrono-tz = "0.9"
-colored = "2.1"
+chrono-tz = "0.10.4"
+colored = "3.0.0"
+regex = "1.12.2"
+
