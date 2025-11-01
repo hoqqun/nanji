@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
-set -e
+# Portable one-line installer for nanji
+# - POSIX sh compatible (works with `| sh`)
+# - Prefers cargo (or cargo-binstall if available)
+# - Falls back gracefully with clear guidance
+
+set -eu
 
 export PATH="$HOME/.cargo/bin:$PATH"
 
@@ -21,20 +26,20 @@ fi
 
 echo "🦀 Installing $BINARY_NAME from $REPO..."
 
-# Create a temp directory for building
-TMP_DIR=$(mktemp -d)
-cd "$TMP_DIR"
+# Prefer cargo-binstall if available (fast prebuilt binaries when provided)
+if command -v cargo-binstall >/dev/null 2>&1; then
+  echo "⚡ Using cargo-binstall (prebuilt if available)"
+  if cargo binstall "$BINARY_NAME" --no-confirm; then
+    echo "✅ $BINARY_NAME installed via cargo-binstall"
+    echo "Run: $BINARY_NAME"
+    exit 0
+  fi
+  echo "ℹ️ cargo-binstall failed or no prebuilt found. Falling back to cargo install."
+fi
 
-# Clone the latest main branch
-git clone --depth 1 "https://github.com/$REPO.git" .
-echo "📦 Cloned repository"
-
-# Build and install using Cargo
-cargo install --path .
-
-# Cleanup
-cd -
-rm -rf "$TMP_DIR"
+# Use cargo install directly from Git repository (no crates.io required)
+echo "🧰 Using cargo install from Git"
+cargo install --git "https://github.com/$REPO.git" --branch main --force "$BINARY_NAME"
 
 echo "✅ $BINARY_NAME installed successfully!"
 echo ""
