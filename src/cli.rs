@@ -80,7 +80,7 @@ pub fn display_all_zones(base_time: &DateTime<Utc>) {
 
 /// Display only the specified IANA timezone names (e.g., "Asia/Tokyo").
 /// Invalid names are skipped with a warning.
-pub fn display_selected_zones(base_time: &DateTime<Utc>, zones: &[String]) {
+pub fn display_selected_zones(base_time: &DateTime<Utc>, zones: &[String], use_alias_labels: bool) {
     use std::str::FromStr;
 
     let mut items: Vec<(String, Option<chrono_tz::Tz>)> = zones
@@ -88,7 +88,20 @@ pub fn display_selected_zones(base_time: &DateTime<Utc>, zones: &[String]) {
         .map(|raw| {
             let canonical = crate::config::normalize_zone_name(raw)
                 .unwrap_or_else(|| raw.clone());
-            (raw.clone(), chrono_tz::Tz::from_str(&canonical).ok())
+            // choose label
+            let label = if use_alias_labels {
+                if crate::config::normalize_zone_name(raw).is_some() {
+                    raw.clone()
+                } else if let Some(alias) = crate::config::alias_for_canonical(&canonical) {
+                    alias
+                } else {
+                    raw.clone()
+                }
+            } else {
+                raw.clone()
+            };
+
+            (label, chrono_tz::Tz::from_str(&canonical).ok())
         })
         .collect();
 

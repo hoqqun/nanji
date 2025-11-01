@@ -11,6 +11,8 @@ It’s simple, fast, and perfect for anyone who frequently checks time differenc
 
 - Displays current time for multiple cities (Tokyo, Dallas, New York, London, Delhi)
 - `--zones` option to show only selected time zones
+- `--zones` option to show only selected time zones
+- `-a, --alias` to label output using your alias names (instead of canonical IANA names)
 - Colorful, easy-to-read terminal output
 - Time automatically converted from UTC to local zones
 
@@ -73,6 +75,20 @@ Aliases notes:
 
 - Aliases are case-insensitive for lookup (`Tokyo`, `TOKYO`, `tokyo` all match).
 - Built-in aliases exist (tokyo/dallas/california/newyork/ny etc.) but your config overrides them if keys collide.
+
+### Examples
+
+- Show only two zones by canonical names but label them with aliases:
+
+```bash
+nanji --zones Asia/Tokyo,America/Chicago --alias
+```
+
+- Base time from Tokyo 09:00, two outputs labeled with aliases:
+
+```bash
+nanji --tokyo 09:00 --zones Asia/Tokyo,America/New_York -a
+```
 
 ---
 

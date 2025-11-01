@@ -5,14 +5,14 @@ use crate::Cli;
 
 pub fn run(cli: &Cli) {
     if let Some(time) = cli.tokyo.as_deref() {
-        tokyo::run(time, cli.zones.as_deref());
+        tokyo::run(time, cli.zones.as_deref(), cli.alias);
         return;
     }
 
     if let Some(time) = cli.dallas.as_deref() {
-        dallas::run(time, cli.zones.as_deref());
+        dallas::run(time, cli.zones.as_deref(), cli.alias);
         return;
     }
 
-    show::run(cli.zones.as_deref());
+    show::run(cli.zones.as_deref(), cli.alias);
 }

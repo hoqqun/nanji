@@ -65,6 +65,22 @@ pub fn normalize_zone_name(raw: &str) -> Option<String> {
     alias_map().remove(&key)
 }
 
+/// Given a canonical IANA name, return one of its alias keys if defined.
+/// If multiple aliases point to the same canonical name, the lexicographically
+/// smallest key is returned for stability.
+pub fn alias_for_canonical(canonical: &str) -> Option<String> {
+    let mut candidates: Vec<String> = alias_map()
+        .into_iter()
+        .filter_map(|(k, v)| if v == canonical { Some(k) } else { None })
+        .collect();
+    if candidates.is_empty() {
+        None
+    } else {
+        candidates.sort_unstable();
+        candidates.into_iter().next()
+    }
+}
+
 fn find_config_path() -> Option<PathBuf> {
     let mut base = dirs::config_dir()?; // ~/.config or platform equivalent
     base.push("nanji");

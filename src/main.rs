@@ -19,6 +19,10 @@ pub struct Cli {
     /// Comma-separated list of zones (e.g. tokyo,dallas)
     #[arg(short, long)]
     pub zones: Option<String>,
+
+    /// Use alias names for labels (e.g. "tokyo") instead of canonical IANA names
+    #[arg(short = 'a', long = "alias")]
+    pub alias: bool,
 }
 
 fn main() {

@@ -1,6 +1,6 @@
 use crate::cli::{convert_valid_time_to_timezone_utc, is_valid_time, display_all_zones, display_selected_zones};
 
-pub fn run(time_str: &str, zones_arg: Option<&str>) {
+pub fn run(time_str: &str, zones_arg: Option<&str>, use_alias_labels: bool) {
     // validate
     if !is_valid_time(time_str) {
         eprintln!("invalid time format: '{}'. expected H:MM or HH:MM (00-23:00-59)", time_str);
@@ -18,7 +18,7 @@ pub fn run(time_str: &str, zones_arg: Option<&str>) {
             .filter(|s| !s.is_empty())
             .collect();
         if !zones.is_empty() {
-            display_selected_zones(&base_time, &zones);
+            display_selected_zones(&base_time, &zones, use_alias_labels);
             return;
         }
     }
@@ -26,7 +26,7 @@ pub fn run(time_str: &str, zones_arg: Option<&str>) {
     // 2) Config file
     if let Some(zones) = crate::config::load_zones() {
         if !zones.is_empty() {
-            display_selected_zones(&base_time, &zones);
+            display_selected_zones(&base_time, &zones, use_alias_labels);
             return;
         }
     }
