@@ -7,13 +7,8 @@ use colored::*;
 
 /// Time newtype validated at parse time
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Time(pub String);
-
-impl Time {
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
 
 /// Validate HH:MM where:
 /// - hours: 0-23, allows "9:00" and "09:00" and "00:00"
@@ -45,25 +40,6 @@ pub enum Zone {
     NewYork,
 }
 
-impl Zone {
-    pub fn display_label(&self) -> &'static str {
-        match self {
-            Zone::Tokyo => "Tokyo JST",
-            Zone::California => "California PST",
-            Zone::Dallas => "Dallas CST",
-            Zone::NewYork => "New York EST",
-        }
-    }
-
-    pub fn tz(&self) -> chrono_tz::Tz {
-        match self {
-            Zone::Tokyo => chrono_tz::Asia::Tokyo,
-            Zone::California => chrono_tz::America::Los_Angeles,
-            Zone::Dallas => chrono_tz::America::Chicago,
-            Zone::NewYork => chrono_tz::America::New_York,
-        }
-    }
-}
 
 #[derive(Parser, Debug)]
 #[command(name = "nanji")]
