@@ -1,4 +1,4 @@
-use clap::{ArgGroup, Parser};
+use clap::Parser;
  
 
 mod commands;
@@ -9,13 +9,14 @@ mod config; // configuration loader for zones
 #[derive(Parser)]
 #[command(name = "nanji")]
 #[command(about = "Show current times in Japan, US, and other major cities", long_about = None)]
-#[command(group(ArgGroup::new("base_tz").args(&["tokyo", "dallas"])))]
 pub struct Cli {
-    #[arg(short, long)]
-    pub dallas: Option<String>,
+    /// Base timezone (alias or IANA name), e.g., tokyo or Asia/Tokyo
+    #[arg(short = 'b', long = "base", requires = "time")]
+    pub base: Option<String>,
 
-    #[arg(short, long)]
-    pub tokyo: Option<String>,
+    /// Base local time in H:MM or HH:MM (24h), e.g., 9:00 or 20:30
+    #[arg(short = 't', long = "time", requires = "base")]
+    pub time: Option<String>,
     /// Comma-separated list of zones (e.g. tokyo,dallas)
     #[arg(short, long)]
     pub zones: Option<String>,

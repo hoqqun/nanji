@@ -152,3 +152,39 @@ pub fn convert_valid_time_to_timezone_utc(time_str: &str, tz: &Tz) -> Result<Dat
 
   Ok(base_local.with_timezone(&Utc)) // DateTime<Utc>
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Timelike;
+
+    #[test]
+    fn valid_times_ok() {
+        for t in ["0:00", "9:00", "09:00", "09:10", "23:59", "00:00"] {
+            assert!(is_valid_time(t), "expected valid: {t}");
+        }
+    }
+
+    #[test]
+    fn invalid_times_ng() {
+        for t in ["24:00", "31:00", "09:60", "9:7", "-1:00", "aa:bb", "9:000", "9::00"] {
+            assert!(!is_valid_time(t), "expected invalid: {t}");
+        }
+    }
+
+    #[test]
+    fn convert_roundtrip_hour_minute_match_tokyo() {
+        let utc = convert_valid_time_to_timezone_utc("09:10", &chrono_tz::Asia::Tokyo).unwrap();
+        let local = utc.with_timezone(&chrono_tz::Asia::Tokyo);
+        assert_eq!(local.hour(), 9);
+        assert_eq!(local.minute(), 10);
+    }
+
+    #[test]
+    fn convert_roundtrip_hour_minute_match_dallas() {
+        let utc = convert_valid_time_to_timezone_utc("9:00", &chrono_tz::America::Chicago).unwrap();
+        let local = utc.with_timezone(&chrono_tz::America::Chicago);
+        assert_eq!(local.hour(), 9);
+        assert_eq!(local.minute(), 0);
+    }
+}

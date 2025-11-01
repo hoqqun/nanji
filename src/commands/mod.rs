@@ -1,16 +1,10 @@
 pub mod show;
-pub mod tokyo;
-pub mod dallas;
+pub mod base;
 use crate::Cli;
 
 pub fn run(cli: &Cli) {
-    if let Some(time) = cli.tokyo.as_deref() {
-        tokyo::run(time, cli.zones.as_deref(), cli.alias);
-        return;
-    }
-
-    if let Some(time) = cli.dallas.as_deref() {
-        dallas::run(time, cli.zones.as_deref(), cli.alias);
+    if let (Some(base), Some(time)) = (cli.base.as_deref(), cli.time.as_deref()) {
+        base::run(base, time, cli.zones.as_deref(), cli.alias);
         return;
     }
 

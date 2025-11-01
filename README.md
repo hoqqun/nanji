@@ -9,12 +9,11 @@ It’s simple, fast, and perfect for anyone who frequently checks time differenc
 
 ## 🚀 Features
 
-- Displays current time for multiple cities (Tokyo, Dallas, New York, London, Delhi)
-- `--zones` option to show only selected time zones
-- `--zones` option to show only selected time zones
+- Show current time for any IANA time zone (filter with `--zones`)
+- Base/time conversion with `-b/--base` and `-t/--time` (e.g. "Tokyo 20:30" as the pivot)
 - `-a, --alias` to label output using your alias names (instead of canonical IANA names)
 - Colorful, easy-to-read terminal output
-- Time automatically converted from UTC to local zones
+- Config file support with clear precedence (CLI > config > fallback)
 
 ---
 
@@ -27,6 +26,47 @@ You can install **nanji** instantly using the provided install script:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hoqqun/nanji/main/install.sh | sh
 ```
+
+If your environment prefers bash explicitly:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hoqqun/nanji/main/install.sh | bash
+```
+
+
+---
+
+## 🕹️ Usage
+
+Quick look (no options):
+
+```bash
+nanji
+```
+
+Filter specific zones (comma-separated). You can use IANA names or your aliases:
+
+```bash
+nanji --zones Asia/Tokyo,America/Chicago
+nanji --alias --zones tokyo,dallas
+```
+
+Use a base time in a base timezone (both required). The given local time is treated in the base timezone and converted to targets:
+
+```bash
+# Base: Tokyo 20:30
+nanji -b tokyo -t 20:30
+
+# Base: IANA name
+nanji --base Asia/Tokyo --time 09:00
+
+# Combine with zones and alias labels
+nanji -b tokyo -t 09:00 --zones Asia/Tokyo,America/New_York --alias
+```
+
+Notes:
+- `-b/--base` requires `-t/--time`, and `-t/--time` requires `-b/--base`. Supplying only one is an error.
+- Time format: `H:MM` or `HH:MM` (24-hour). Examples: `9:00`, `09:10`, `23:59`.
 
 
 ---
@@ -87,7 +127,7 @@ nanji --zones Asia/Tokyo,America/Chicago --alias
 - Base time from Tokyo 09:00, two outputs labeled with aliases:
 
 ```bash
-nanji --tokyo 09:00 --zones Asia/Tokyo,America/New_York -a
+nanji -b tokyo -t 09:00 --zones Asia/Tokyo,America/New_York -a
 ```
 
 ---
