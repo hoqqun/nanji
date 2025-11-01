@@ -33,9 +33,15 @@ curl -fsSL https://raw.githubusercontent.com/hoqqun/nanji/main/install.sh | sh
 
 You can pin the display to only your favorite timezones by creating a config file.
 
-Location (XDG):
+Config file location (per OS):
 
-- Linux: `$XDG_CONFIG_HOME/nanji/config.toml` (or `~/.config/nanji/config.toml`)
+- Linux (XDG): `$XDG_CONFIG_HOME/nanji/config.toml` (or `~/.config/nanji/config.toml`)
+- macOS: `~/Library/Application Support/nanji/config.toml`
+- Windows: `%APPDATA%\nanji\config.toml` (typically `C:\\Users\\<You>\\AppData\\Roaming\\nanji\\config.toml`)
+
+Notes:
+- The path is resolved using the OS defaults (same as Rust's `dirs::config_dir()`).
+- Create the `nanji` directory if it doesn't exist.
 
 Example `config.toml`:
 
