@@ -14,9 +14,7 @@ pub struct Config {
 /// Load zones list from config file if present.
 /// Looks for: $XDG_CONFIG_HOME/nanji/config.toml or ~/.config/nanji/config.toml
 pub fn load_zones() -> Option<Vec<String>> {
-    let path = find_config_path()?;
-    let content = fs::read_to_string(path).ok()?;
-    let cfg: Config = toml::from_str(&content).ok()?;
+    let cfg = load_config()?;
     cfg.zones
 }
 
