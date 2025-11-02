@@ -17,7 +17,42 @@ It’s simple, fast, and perfect for anyone who frequently checks time differenc
 
 ---
 
-## 🧰 Installation
+## 🧭 nanji Highlights
+
+- Instantly convert "today's time" across zones
+  - Use `-b/--base` and `-t/--time` to quickly pivot from a base time (e.g. "Tokyo 09:00") to any target zones. The date is always "today" for fast daily scheduling.
+  - Strict validation for 24-hour time format (`H:MM` or `HH:MM`, e.g. `9:00`, `09:10`, `23:59`).
+
+- Smooth alias experience
+  - Aliases are case-insensitive for lookup, but display labels preserve your original casing from config.
+  - Toggle between IANA names and alias labels instantly with the `--alias` flag.
+  - Built-in aliases (tokyo, dallas, california, ny, etc.) included; user config always takes precedence if keys overlap.
+
+- Consistent zone selection priority
+  - 1) CLI `--zones` > 2) Config file `zones` > 3) All zones (fallback).
+  - Invalid zone names are skipped with a warning; valid zones continue to display.
+
+- Readable, well-formatted output
+  - Colored output and automatic label width adjustment for easy comparison across multiple time zones.
+
+- DST and ambiguous time handling
+  - Nonexistent local times (due to DST) are treated as errors. Ambiguous times are resolved to the earliest valid time.
+  - Robust conversion between local, UTC, and other zones using `chrono` / `chrono-tz`.
+
+- Cross-platform configuration
+  - Automatically resolves config directory for XDG/macOS/Windows. Just write `zones` and `[aliases]` in TOML format.
+  - Built-in aliases can be safely overridden by user config; display labels always use your original casing.
+
+- Easy and fast installation
+  - Install with a one-liner; Rust binary runs fast and lightweight.
+
+See "Usage" for details and "Configuration" for setup instructions.
+
+[Demo Video](./demo.mp4)
+
+---
+
+## �🧰 Installation
 
 ### 🦀 Install via one-liner (recommended)
 
