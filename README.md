@@ -48,7 +48,7 @@ It’s simple, fast, and perfect for anyone who frequently checks time differenc
 
 See "Usage" for details and "Configuration" for setup instructions.
 
-[Demo Video](./demo.mp4)
+[Demo Video](./demogif.gif)
 
 ---
 
