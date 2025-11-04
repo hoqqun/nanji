@@ -1,3 +1,5 @@
+![Demo Video](./demogif.gif)
+
 # 🕐 nanji
 
 **nanji** (meaning “what time is it?” in Japanese) is a lightweight Rust-based CLI tool  
@@ -47,8 +49,6 @@ It’s simple, fast, and perfect for anyone who frequently checks time differenc
   - Install with a one-liner; Rust binary runs fast and lightweight.
 
 See "Usage" for details and "Configuration" for setup instructions.
-
-[Demo Video](./demogif.gif)
 
 ---
 
