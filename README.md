@@ -169,7 +169,7 @@ nanji -b tokyo -t 09:00 --zones Asia/Tokyo,America/New_York -a
 
 ## 📚 Full list of supported time zones
 
-Below is the list of IANA time zone names supported by this binary (based on chrono-tz 0.10.4).
+Below is the list of IANA time zone names supported by this binary (based on jiff-tzdb).
 For the CLI `--zones` and the config `zones` / `[aliases]`, you can use any canonical name from this list (you can also define your own aliases).
 
 <details>
