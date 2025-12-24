@@ -1,5 +1,4 @@
-use chrono::{Datelike, TimeZone, DateTime, Utc};
-use chrono_tz::Tz;
+use jiff::{Timestamp, Zoned, tz::TimeZone, civil};
 use clap::{Parser, ValueEnum};
 use regex::Regex;
 use colored::*;
@@ -55,15 +54,16 @@ pub struct Cli {
 }
 
 
-pub fn display_all_zones(base_time: &DateTime<Utc>, use_alias_labels: bool) {
-    // Prepare canonical names and tz
-    let zones: Vec<(String, Tz)> = chrono_tz::TZ_VARIANTS
-        .iter()
-        .map(|tz| (tz.name().to_string(), tz.clone()))
+pub fn display_all_zones(base_time: &Timestamp, use_alias_labels: bool) {
+    // Get all available timezone names from jiff-tzdb
+    let zones: Vec<(String, TimeZone)> = jiff_tzdb::available()
+        .filter_map(|name| {
+            TimeZone::get(name).ok().map(|tz| (name.to_string(), tz))
+        })
         .collect();
 
     // Compute labels (alias or canonical)
-    let labeled: Vec<(String, Tz)> = if use_alias_labels {
+    let labeled: Vec<(String, TimeZone)> = if use_alias_labels {
         zones
             .into_iter()
             .map(|(canonical, tz)| {
@@ -83,11 +83,11 @@ pub fn display_all_zones(base_time: &DateTime<Utc>, use_alias_labels: bool) {
 
     println!("{}", "────────────────────────────".bright_blue());
     for (label, tz) in labeled {
-        let local_time = base_time.with_timezone(&tz);
+        let local_time = base_time.to_zoned(tz);
         println!(
             "{:<width$}: {}",
             label.bold(),
-            local_time.format("%Y-%m-%d %H:%M"),
+            local_time.strftime("%Y-%m-%d %H:%M"),
             width = max_name_len,
         );
     }
@@ -96,10 +96,8 @@ pub fn display_all_zones(base_time: &DateTime<Utc>, use_alias_labels: bool) {
 
 /// Display only the specified IANA timezone names (e.g., "Asia/Tokyo").
 /// Invalid names are skipped with a warning.
-pub fn display_selected_zones(base_time: &DateTime<Utc>, zones: &[String], use_alias_labels: bool) {
-    use std::str::FromStr;
-
-    let mut items: Vec<(String, Option<chrono_tz::Tz>)> = zones
+pub fn display_selected_zones(base_time: &Timestamp, zones: &[String], use_alias_labels: bool) {
+    let mut items: Vec<(String, Option<TimeZone>)> = zones
         .iter()
         .map(|raw| {
             let canonical = crate::config::normalize_zone_name(raw)
@@ -117,7 +115,7 @@ pub fn display_selected_zones(base_time: &DateTime<Utc>, zones: &[String], use_a
                 raw.clone()
             };
 
-            (label, chrono_tz::Tz::from_str(&canonical).ok())
+            (label, TimeZone::get(&canonical).ok())
         })
         .collect();
 
@@ -132,11 +130,11 @@ pub fn display_selected_zones(base_time: &DateTime<Utc>, zones: &[String], use_a
     for (label, tz_opt) in items.drain(..) {
         match tz_opt {
             Some(tz) => {
-                let local_time = base_time.with_timezone(&tz);
+                let local_time = base_time.to_zoned(tz);
                 println!(
                     "{:<width$}: {}",
                     label.bold(),
-                    local_time.format("%Y-%m-%d %H:%M"),
+                    local_time.strftime("%Y-%m-%d %H:%M"),
                     width = max_name_len,
                 );
             }
@@ -148,31 +146,36 @@ pub fn display_selected_zones(base_time: &DateTime<Utc>, zones: &[String], use_a
     println!("{}", "────────────────────────────".bright_blue());
 }
 
-pub fn convert_valid_time_to_timezone_utc(time_str: &str, tz: &Tz) -> Result<DateTime<Utc>, String> {
-   // parse hour and minute
-  let mut parts = time_str.split(':');
-  let h: u32 = parts.next().and_then(|s| s.parse().ok()).unwrap_or(0);
-  let m: u32 = parts.next().and_then(|s| s.parse().ok()).unwrap_or(0);
+pub fn convert_valid_time_to_timezone_utc(time_str: &str, tz: &TimeZone) -> Result<Timestamp, String> {
+    // parse hour and minute
+    let mut parts = time_str.split(':');
+    let h: i8 = parts.next().and_then(|s| s.parse().ok()).unwrap_or(0);
+    let m: i8 = parts.next().and_then(|s| s.parse().ok()).unwrap_or(0);
 
-  let today_local = Utc::now().with_timezone(tz);
-  let (y, mo, d) = (today_local.year(), today_local.month(), today_local.day());
+    // Get today's date in the target timezone
+    let now = Zoned::now().with_time_zone(tz.clone());
+    let today = now.date();
 
-  let base_local = match tz.with_ymd_and_hms(y, mo, d, h, m, 0) {
-      chrono::LocalResult::Single(dt) => dt,
-      chrono::LocalResult::Ambiguous(dt_early, _dt_late) => dt_early, // pick earliest
-      chrono::LocalResult::None => {
-          eprintln!("the specified local time does not exist due to DST transition");
-          return Err("invalid local time due to DST".into());
-      }
-  };
+    // Build civil time
+    let time = civil::Time::new(h, m, 0, 0)
+        .map_err(|e| format!("invalid time: {}", e))?;
 
-  Ok(base_local.with_timezone(&Utc)) // DateTime<Utc>
+    // Build civil datetime
+    let dt = civil::DateTime::from_parts(today, time);
+
+    // Convert to zoned datetime in the target timezone
+    match dt.to_zoned(tz.clone()) {
+        Ok(zdt) => Ok(zdt.timestamp()),
+        Err(_) => {
+            eprintln!("the specified local time does not exist due to DST transition");
+            Err("invalid local time due to DST".into())
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::Timelike;
 
     #[test]
     fn valid_times_ok() {
@@ -190,16 +193,18 @@ mod tests {
 
     #[test]
     fn convert_roundtrip_hour_minute_match_tokyo() {
-        let utc = convert_valid_time_to_timezone_utc("09:10", &chrono_tz::Asia::Tokyo).unwrap();
-        let local = utc.with_timezone(&chrono_tz::Asia::Tokyo);
+        let tz = TimeZone::get("Asia/Tokyo").unwrap();
+        let ts = convert_valid_time_to_timezone_utc("09:10", &tz).unwrap();
+        let local = ts.to_zoned(tz);
         assert_eq!(local.hour(), 9);
         assert_eq!(local.minute(), 10);
     }
 
     #[test]
     fn convert_roundtrip_hour_minute_match_dallas() {
-        let utc = convert_valid_time_to_timezone_utc("9:00", &chrono_tz::America::Chicago).unwrap();
-        let local = utc.with_timezone(&chrono_tz::America::Chicago);
+        let tz = TimeZone::get("America/Chicago").unwrap();
+        let ts = convert_valid_time_to_timezone_utc("9:00", &tz).unwrap();
+        let local = ts.to_zoned(tz);
         assert_eq!(local.hour(), 9);
         assert_eq!(local.minute(), 0);
     }
