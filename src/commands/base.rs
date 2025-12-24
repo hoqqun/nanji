@@ -1,6 +1,4 @@
-use std::str::FromStr;
-use chrono::{DateTime, Utc};
-use chrono_tz::Tz;
+use jiff::{Timestamp, tz::TimeZone};
 use crate::cli::{is_valid_time, convert_valid_time_to_timezone_utc, display_all_zones, display_selected_zones};
 
 pub fn run(base_tz_raw: &str, time_str: &str, zones_arg: Option<&str>, use_alias_labels: bool) {
@@ -10,10 +8,10 @@ pub fn run(base_tz_raw: &str, time_str: &str, zones_arg: Option<&str>, use_alias
         return;
     }
 
-    // Resolve base timezone: alias -> canonical IANA -> Tz
+    // Resolve base timezone: alias -> canonical IANA -> TimeZone
     let canonical = crate::config::normalize_zone_name(base_tz_raw)
         .unwrap_or_else(|| base_tz_raw.to_string());
-    let tz = match Tz::from_str(&canonical) {
+    let tz = match TimeZone::get(&canonical) {
         Ok(tz) => tz,
         Err(_) => {
             eprintln!("unknown base timezone: '{}'. Try IANA name like 'Asia/Tokyo'", base_tz_raw);
@@ -22,8 +20,8 @@ pub fn run(base_tz_raw: &str, time_str: &str, zones_arg: Option<&str>, use_alias
     };
 
     // Build base UTC time from the provided local time in base tz
-    let base_time: DateTime<Utc> = match convert_valid_time_to_timezone_utc(time_str, &tz) {
-        Ok(utc) => utc,
+    let base_time: Timestamp = match convert_valid_time_to_timezone_utc(time_str, &tz) {
+        Ok(ts) => ts,
         Err(e) => {
             eprintln!("failed to construct base time: {}", e);
             return;

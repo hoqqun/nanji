@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
 use crate::cli::{display_all_zones, display_selected_zones};
 
 /// Show times for zones determined by CLI or config.
@@ -7,7 +7,7 @@ use crate::cli::{display_all_zones, display_selected_zones};
 /// 2) Config file zones (~/.config/nanji/config.toml)
 /// 3) All zones (fallback)
 pub fn run(zones_arg: Option<&str>, use_alias_labels: bool) {
-    let now_utc: DateTime<Utc> = Utc::now();
+    let now: Timestamp = Timestamp::now();
 
     // 1) CLI --zones takes precedence if provided
     if let Some(zs) = zones_arg {
@@ -17,7 +17,7 @@ pub fn run(zones_arg: Option<&str>, use_alias_labels: bool) {
             .filter(|s| !s.is_empty())
             .collect();
         if !zones.is_empty() {
-            display_selected_zones(&now_utc, &zones, use_alias_labels);
+            display_selected_zones(&now, &zones, use_alias_labels);
             return;
         }
     }
@@ -25,11 +25,11 @@ pub fn run(zones_arg: Option<&str>, use_alias_labels: bool) {
     // 2) Try config file
     if let Some(zones) = crate::config::load_zones() {
         if !zones.is_empty() {
-            display_selected_zones(&now_utc, &zones, use_alias_labels);
+            display_selected_zones(&now, &zones, use_alias_labels);
             return;
         }
     }
 
     // 3) Fallback to all zones
-    display_all_zones(&now_utc, use_alias_labels);
+    display_all_zones(&now, use_alias_labels);
 }
